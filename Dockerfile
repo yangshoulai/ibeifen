@@ -16,4 +16,4 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 # 运行机器人
-CMD ["python", "-m", "src/main.py"]
+CMD ["python", "src/main.py"]
