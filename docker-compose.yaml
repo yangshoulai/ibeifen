@@ -1,0 +1,15 @@
+services:
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./data:/data
+    environment:
+      - TZ=Asia/Shanghai
+      - BOT_TOKEN=${BOT_TOKEN}
+      - BEIFEN_CHAT_ID=${BEIFEN_CHAT_ID}
+      - DATABASE_URL=sqlite+aiosqlite:///data/bot.db
+      - PROXY=${PROXY}
+      - PYTHONDONTWRITEBYTECODE=1
+    restart: unless-stopped
