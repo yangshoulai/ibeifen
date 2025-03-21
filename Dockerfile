@@ -10,7 +10,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY src/ ./src/
 
 # 设置环境变量
-ENV PYTHONPATH=/app
+ENV PYTHONPATH=/app/src
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
