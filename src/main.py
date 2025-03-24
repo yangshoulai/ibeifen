@@ -5,7 +5,7 @@ from config import BOT_TOKEN, DATABASE_URL, PROXY
 from models.base import init_db
 from handlers.command_handlers import start_command, register_command, unregister_command, me_command
 from handlers.message_handlers import handle_message
-from handlers.search_handlers import search_command, handle_message_view, handle_page_navigation
+from handlers.search_handlers import search_command, handle_message_view, handle_page_navigation, handle_message_delete
 
 # 配置日志
 logging.basicConfig(
@@ -72,6 +72,10 @@ class TelegramBot:
             # 注册分页导航回调处理程序
             self.application.add_handler(CallbackQueryHandler(
                 handle_page_navigation, pattern=r"^page_\d+$"))
+
+            # 注册消息删除回调处理程序
+            self.application.add_handler(CallbackQueryHandler(
+                handle_message_delete, pattern=r"^delete_\d+$"))
 
             # 注册消息处理程序
             self.application.add_handler(MessageHandler(

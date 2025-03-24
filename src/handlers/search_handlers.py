@@ -105,7 +105,7 @@ async def show_search_results(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     # 构建搜索结果显示
     title = "最近的消息" if not query else f'搜索 "{query}"'
-    text = f"<b>{title}</b> (第 {page} / {total_pages} 页)\n\n"
+    text = f"<b>{title}</b> (第 {page}/{total_pages} 页)\n\n"
 
     # 添加消息列表
     for idx, msg in enumerate(messages, 1):
@@ -119,7 +119,7 @@ async def show_search_results(update: Update, context: ContextTypes.DEFAULT_TYPE
         preview = clean_message_text(msg.text)
 
         # 构建消息条目
-        text += f"<b>{idx}</b>. {icon} <code>{time_str}</code>\n"
+        text += f"{idx}. {icon} <code>{time_str}</code>\n"
         if msg.message_type != "text":
             text += f"   └ 类型：{msg.message_type}\n"
         text += f"   └ {preview}\n\n"
@@ -128,15 +128,14 @@ async def show_search_results(update: Update, context: ContextTypes.DEFAULT_TYPE
     keyboard = []
     current_row = []
 
-    # 添加序号按钮，每行最多5个
+    # 添加序号按钮和删除按钮，每行最多5个
     for idx, msg in enumerate(messages, 1):
-        current_row.append(InlineKeyboardButton(
-            f"{idx}",
-            callback_data=f"view_{msg.id}"
-        ))
-        if len(current_row) == 5 or idx == len(messages):
-            keyboard.append(current_row)
-            current_row = []
+        # 创建包含查看和删除按钮的行
+        row = [
+            InlineKeyboardButton(f"查看 {idx}", callback_data=f"view_{msg.id}"),
+            InlineKeyboardButton(f"删除 {idx}", callback_data=f"delete_{msg.id}")
+        ]
+        keyboard.append(row)
 
     # 添加分页按钮
     nav_buttons = []
@@ -231,3 +230,49 @@ async def handle_message_view(update: Update, context: ContextTypes.DEFAULT_TYPE
         except Exception as e:
             logger.error(f"发送消息失败: {e}")
             await query.message.reply_text("❌ 消息发送失败，请稍后重试。")
+
+
+async def handle_message_delete(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """处理消息删除回调"""
+    query = update.callback_query
+    await query.answer()
+
+    message_id = int(query.data.split('_')[1])
+    sessionmaker = context.bot_data["db_session"]
+
+    try:
+        with sessionmaker.begin() as session:
+            # 获取消息信息
+            result = session.execute(
+                select(Message).where(Message.id == message_id)
+            )
+            message = result.scalar_one_or_none()
+
+            if not message:
+                await query.message.reply_text("❌ 消息不存在！")
+                return
+
+            # 如果配置了目标群组，尝试删除群组中的消息
+            if BEIFEN_CHAT_ID and message.forwarded_message_id:
+                try:
+                    await context.bot.delete_message(
+                        chat_id=BEIFEN_CHAT_ID,
+                        message_id=message.forwarded_message_id
+                    )
+                except Exception as e:
+                    logger.warning(f"删除频道消息失败: {e}")
+
+            # 删除数据库中的消息记录
+            session.delete(message)
+
+        # 发送删除成功消息
+        await query.message.reply_text("✅ 消息已删除！")
+
+        # 刷新搜索结果
+        search_query = context.user_data.get('search_query', '')
+        current_page = int(query.message.text.split('第 ')[1].split('/')[0])
+        await show_search_results(update, context, current_page, search_query, is_new_search=False)
+
+    except Exception as e:
+        logger.error(f"删除消息失败: {e}")
+        await query.message.reply_text("❌ 删除消息失败，请稍后重试。")

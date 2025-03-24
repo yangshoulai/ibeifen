@@ -176,7 +176,7 @@ async def me_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # 构建消息统计
     stats = f"📊 <b>消息统计</b>\n"
-    
+
     # 消息类型映射和图标
     type_info = {
         "text": ("文本消息", "📝"),
