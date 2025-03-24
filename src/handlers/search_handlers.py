@@ -4,6 +4,7 @@ from telegram.ext import ContextTypes
 from sqlalchemy import select, or_, func
 from models.models import Message
 from config import MESSAGES_PER_PAGE, BEIFEN_CHAT_ID
+from utils import bot_utils
 from utils.text_utils import tokenize_text
 logger = logging.getLogger(__name__)
 # 会话状态
@@ -266,12 +267,14 @@ async def handle_message_delete(update: Update, context: ContextTypes.DEFAULT_TY
             session.delete(message)
 
         # 发送删除成功消息
-        await query.message.reply_text("✅ 消息已删除！")
+        m = await query.message.reply_text("✅ 消息已删除！")
 
         # 刷新搜索结果
         search_query = context.user_data.get('search_query', '')
         current_page = int(query.message.text.split('第 ')[1].split('/')[0])
         await show_search_results(update, context, current_page, search_query, is_new_search=False)
+
+        await bot_utils.delete_message(m, context)
 
     except Exception as e:
         logger.error(f"删除消息失败: {e}")

@@ -16,11 +16,11 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 欢迎使用消息备份机器人！
 
 可用命令：
-/start - 显示此帮助信息
-/register - 注册
+/start      - 显示此帮助信息
+/register   - 注册
 /unregister - 注销
-/search - 搜索已备份的消息
-/me - 查看个人信息统计
+/search     - 搜索已备份的消息
+/me         - 查看个人信息统计
 
 使用方法：
 1. 将想要备份的消息转发给我

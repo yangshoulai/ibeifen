@@ -7,7 +7,7 @@ from utils.text_utils import tokenize_text
 from config import BEIFEN_CHAT_ID
 from datetime import datetime
 import logging
-
+from utils import bot_utils
 logger = logging.getLogger(__name__)
 
 
@@ -86,4 +86,4 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         session.add(new_message)
 
-    await update.message.reply_text("✅ 消息已备份！")
+    await bot_utils.reply_and_delete_message("✅ 消息已备份！", update, context, False)
